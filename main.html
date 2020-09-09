@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			canvas {
+			padding-left: 0;
+			padding-right: 0;
+			margin-left: auto;
+			margin-right: auto;
+			display: block;
+			border:1px solid #000000;
+			}
+			
+			
+			
+		</style>
+	</head>
+<body>
+
+<audio id="elecManAudio"> 
+  <source src="08_Elec_Man.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
+<audio id="motorcycleAudio">
+	<source src="motorcycle-pass-by-03.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="stageClearAudio">
+	<source src="Stage_Clear.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="deathAudio">
+	<source src="Ghosts_n_Goblins_9.mp3" type="audio/mpeg">
+</audio>
+
+
+
+<canvas id="myCanvas" width="800" height="549" style="background: url('background-2.jpg')" >
+Your browser does not support the HTML canvas tag.
+</canvas>
+
+<div id="gameControls"  style="text-align:center; padding-top:10px"  >
+  <button id="upButton" onmouseup="upButtonRelease()" onmousedown="upButtonPress()" >UP</button><br>
+  <button id="leftButton" onmouseup="leftButtonRelease()" onmousedown="leftButtonPress()" >LEFT</button>
+  <button id="rightButton" onmouseup="rightButtonRelease()" onmousedown="rightButtonPress()" >RIGHT</button><br>
+  <button id="downButton" onmouseup="downButtonRelease()" onmousedown="downButtonPress()" >DOWN</button>
+</div>
+
+
+</body>
+
+<script>
+//var img = new Image();
+
+
+const canvas = document.getElementById('myCanvas');
+var ctx = canvas.getContext("2d");
+
+//redrawWorld();
+
+
+
+var snailXCoordinates = 385;
+var snailYCoordinates = 485;
+
+
+var duckXCoordinates = 530;
+var duckYCoordinates = 70;
+
+var appleXCoordinates = 400;
+var appleYCoordinates = 10;
+
+
+var widthOfImage = 48; //width of snail
+var heightOfImage = 48; //height of snail
+
+let snailWidth = 48;
+let snailHeight = 48;
+let widthBus = 48;
+let heightBus = 17;
+let widthCar3 = 48;
+let heightCar3 = 18;
+let widthCar23 = 48;
+let heightCar23 = 14;
+let widthCar26 = 48;
+let heightCar26 = 18;
+let widthMotorcycle = 48;
+let heightMotorcycle = 31;
+let duckWidth = 48;
+let duckHeight = 48;
+
+var directionOfView = "right";
+
+const image = new Image();
+const imageReverse = new Image();
+const imageMotorcycle = new Image();
+const imageCar3 = new Image();
+const imageCar23 = new Image();
+const imageCar26 = new Image();
+const bus = new Image();
+const duck = new Image();
+const apple = new Image();
+const tombstone = new Image();
+
+//image.src = "frog.png";
+image.src = "snail.gif";
+imageReverse.src = "snail_reverse.png";
+imageMotorcycle.src = "motorcycleAlter.gif";
+imageCar3.src = "car3alter.gif";	
+imageCar23.src = "car23alter.gif";
+bus.src = "busAlter.gif";
+imageCar26.src = "car26alter.gif";
+duck.src = "duck.png";
+apple.src = "apple.png";
+tombstone.src = "tombstone.png";
+
+let stopDrawingBus = false;
+let stopDrawingCar3 = false;
+let stopDrawingCar23 = false;
+let stopDrawingCar26 = false;
+let stopDrawingMotorcycle = false;
+let stopDrawingDuck = false;
+var motorcycleNum = 0;
+var numberOfDuckFuncCalls = 1;
+
+var numberSnailDeathFuncCalls = 0;
+
+var duckAte = false;
+
+var upButtonIntervalVar;
+var downButtonIntervalVar;
+var leftButtonIntervalVar;
+var rightButtonIntervalVar;
+
+var stopDrawingSnail = false;
+
+	image.onload = () => {
+       ctx.drawImage(image, snailXCoordinates, snailYCoordinates);
+	   ctx.drawImage(duck, duckXCoordinates, duckYCoordinates);
+	   ctx.drawImage(apple, appleXCoordinates, appleYCoordinates);
+    }
+
+
+var mainMusic = document.getElementById("elecManAudio");
+mainMusic.loop = true;
+mainMusic.play(); 
+var winMusic = document.getElementById("stageClearAudio");
+var deathMusic = document.getElementById("deathAudio");
+var motoMusic = document.getElementById("motorcycleAudio");
+
+
+document.onkeydown = checkKey;
+
+
+
+runVehicles();
+
+
+async function runVehicles()
+{
+
+	for (let i = 0; i < 900; i++)
+	{
+		setTimeout(function() { car3() }, 7000 * i);
+		setTimeout(function() { car23() }, 8000 * i);
+		setTimeout(function() { busFunc() }, 10000 * i);
+		setTimeout(function() { car26() }, 9000 * i);
+	}
+	
+}
+
+//motorcycle();
+
+/*Upper lane*/
+
+async function motorcycle()
+{
+	motoMusic.play();
+	
+	let xMotorcyclePos = -100;
+	let yMotorcyclePos = 135;
+	
+	for (let i = 0; i < 1000; i++)
+	{
+		setTimeout(function(){		
+
+		ctx.clearRect(xMotorcyclePos , yMotorcyclePos, widthMotorcycle, heightMotorcycle);
+		
+		if ( stopDrawingMotorcycle == false)
+		{
+			xMotorcyclePos = xMotorcyclePos + 1;
+		}
+		
+		ctx.drawImage(imageMotorcycle, xMotorcyclePos , yMotorcyclePos);
+		
+		
+		if ( 
+		( (xMotorcyclePos < snailXCoordinates  &&   snailXCoordinates < xMotorcyclePos + widthMotorcycle) || (xMotorcyclePos < snailXCoordinates + snailWidth   &&   snailXCoordinates < xMotorcyclePos + widthMotorcycle) ) &&
+		//bus on top of snail                                                                                 snail on top of bus
+		( (yMotorcyclePos <= snailYCoordinates && snailYCoordinates < yMotorcyclePos + heightMotorcycle  ) || (yMotorcyclePos < snailYCoordinates + snailHeight    && snailYCoordinates + snailHeight  <= yMotorcyclePos + heightMotorcycle )  ||
+		//snail in the middle of bus
+		( snailYCoordinates < yMotorcyclePos && snailYCoordinates + snailHeight  > yMotorcyclePos + heightMotorcycle )
+		)
+		)
+		{			
+			stopDrawingMotorcycle = true;
+			snailDeath();
+		}
+				
+		}, 3 * i);
+	}
+}
+
+async function car3()
+{
+
+	let xCar3Pos = -100;
+	let yCar3Pos = 190;
+	
+	for (let i = 0; i < 1000; i++)
+	{
+		setTimeout(function(){		
+
+		ctx.clearRect(xCar3Pos , yCar3Pos, widthCar3, heightCar3);
+		
+		if ( stopDrawingCar3 == false)
+		{
+			xCar3Pos = xCar3Pos + 1;
+		}
+		
+		ctx.drawImage(imageCar3, xCar3Pos , yCar3Pos);
+		
+		
+		if ( 
+		( (xCar3Pos < snailXCoordinates  &&   snailXCoordinates < xCar3Pos + widthCar3) || (xCar3Pos < snailXCoordinates + snailWidth   &&   snailXCoordinates < xCar3Pos + widthCar3) ) &&
+		//bus on top of snail                                                                                 snail on top of bus
+		( (yCar3Pos <= snailYCoordinates && snailYCoordinates < yCar3Pos + heightCar3  ) || (yCar3Pos < snailYCoordinates + snailHeight    && snailYCoordinates + snailHeight  <= yCar3Pos + heightCar3 )  ||
+		//snail in the middle of bus
+		( snailYCoordinates < yCar3Pos && snailYCoordinates + snailHeight  > yCar3Pos + heightCar3 )
+		)
+		)
+		{			
+			stopDrawingCar3 = true;
+			snailDeath();
+		}
+				
+		}, 15 * i);
+	}
+}
+
+async function car23()
+{	
+	let xCar23Pos = -200;
+	let yCar23Pos = 250;
+	
+	for (let i = 0; i < 1100; i++)
+	{
+		setTimeout(function(){
+		
+		ctx.clearRect(xCar23Pos, yCar23Pos, widthCar23, heightCar23);
+		
+		if ( stopDrawingCar23 == false)
+		{
+			xCar23Pos = xCar23Pos + 1;
+		}
+		
+		ctx.drawImage(imageCar23, xCar23Pos , yCar23Pos);
+				
+		if ( 
+		( (xCar23Pos < snailXCoordinates  &&   snailXCoordinates < xCar23Pos + widthCar23) || (xCar23Pos < snailXCoordinates + snailWidth   &&   snailXCoordinates < xCar23Pos + widthCar23) ) &&
+		//bus on top of snail                                                                                 snail on top of bus
+		( (yCar23Pos <= snailYCoordinates && snailYCoordinates < yCar23Pos + heightCar23  ) || (yCar23Pos < snailYCoordinates + snailHeight    && snailYCoordinates + snailHeight  <= yCar23Pos + heightCar23 )  ||
+		//snail in the middle of bus
+		( snailYCoordinates < yCar23Pos && snailYCoordinates + snailHeight  > yCar23Pos + heightCar23 )
+		)
+		)
+		{			
+			stopDrawingCar23 = true;
+			snailDeath();
+		}
+		
+		
+		}, 10 * i);
+	}
+	
+}
+
+/*Lower Lane*/
+
+async function busFunc()
+{
+	let xBusPos = 900; //x position of bus
+	let yBusPos = 430;
+	
+	for (let x = 900; x > -100; --x)
+	{		
+		setTimeout(function(){		
+		ctx.clearRect(xBusPos , yBusPos, widthBus, heightBus );
+		
+		if ( stopDrawingBus == false)
+		{
+			xBusPos = xBusPos - 1;
+		}
+				
+		ctx.drawImage(bus, xBusPos , yBusPos);
+						
+		if ( 
+		( (xBusPos < snailXCoordinates  &&   snailXCoordinates < xBusPos + widthBus) || (xBusPos < snailXCoordinates + snailWidth   &&   snailXCoordinates < xBusPos + widthBus) ) &&
+		//bus on top of snail                                                                                 snail on top of bus
+		( (yBusPos <= snailYCoordinates && snailYCoordinates < yBusPos + heightBus  ) || (yBusPos < snailYCoordinates + snailHeight    && snailYCoordinates + snailHeight  <= yBusPos + heightBus )  ||
+		//snail in the middle of bus
+		( snailYCoordinates < yBusPos && snailYCoordinates + snailHeight  > yBusPos + heightBus )
+		)
+		)
+		{			
+			stopDrawingBus = true;
+			snailDeath();
+		}
+		
+		}, 10 * x);
+	}
+}
+
+async function car26()
+{
+	//let j = 950;
+	let xCar26Pos = 950;
+	let yCar26Pos = 360;
+	
+	for (let x = 900; x > -100; --x)
+	{		
+		setTimeout(function(){		
+
+		ctx.clearRect(xCar26Pos, yCar26Pos, widthCar26, heightCar26);
+		
+		if ( stopDrawingCar26 == false )
+		{
+			xCar26Pos = xCar26Pos - 1;;
+		}
+				
+		ctx.drawImage(imageCar26, xCar26Pos , yCar26Pos);		
+		
+		if ( 
+		( (xCar26Pos < snailXCoordinates  &&   snailXCoordinates < xCar26Pos + widthCar26) || (xCar26Pos < snailXCoordinates + snailWidth   &&   snailXCoordinates < xCar26Pos + widthCar26) ) &&
+		//bus on top of snail                                                                                 snail on top of bus
+		( (yCar26Pos <= snailYCoordinates && snailYCoordinates < yCar26Pos + heightCar26  ) || (yCar26Pos < snailYCoordinates + snailHeight    && snailYCoordinates + snailHeight  <= yCar26Pos + heightCar26 )  ||
+		//snail in the middle of bus
+		( snailYCoordinates < yCar26Pos && snailYCoordinates + snailHeight  > yCar26Pos + heightCar26 )
+		)
+		)
+		{			
+			stopDrawingCar26 = true;
+			snailDeath();
+		}
+		
+		
+		}, 8 * x);		
+	}
+}
+
+
+async function duckFunc()
+{
+	let count = 0;
+	console.log(
+	
+		( (duckXCoordinates < snailXCoordinates  &&   snailXCoordinates < duckXCoordinates + duckWidth) || (duckXCoordinates < snailXCoordinates + snailWidth   &&   snailXCoordinates < duckXCoordinates + duckWidth) ) &&
+		//bus on top of snail                                                                                 snail on top of bus
+		( (duckYCoordinates <= snailYCoordinates && snailYCoordinates < duckYCoordinates + duckHeight  ) || (duckYCoordinates < snailYCoordinates + snailHeight    && snailYCoordinates + snailHeight  <= duckYCoordinates + duckHeight )  ||
+		//snail in the middle of bus
+		( snailYCoordinates < duckYCoordinates && snailYCoordinates + snailHeight  > duckYCoordinates + duckHeight )
+		)
+	
+	);
+	
+	while (
+	/*
+	!(
+	 ( (duckXCoordinates < snailXCoordinates  &&   snailXCoordinates < duckXCoordinates + duckWidth) || (duckXCoordinates < snailXCoordinates + snailWidth   &&   snailXCoordinates < duckXCoordinates + duckWidth) ) &&
+		//bus on top of snail                                                                                 snail on top of bus
+		( (duckYCoordinates <= snailYCoordinates && snailYCoordinates < duckYCoordinates + duckHeight  ) || (duckYCoordinates < snailYCoordinates + snailHeight    && snailYCoordinates + snailHeight  <= duckYCoordinates + duckHeight )  ||
+		//snail in the middle of bus
+		( snailYCoordinates < duckYCoordinates && snailYCoordinates + snailHeight  > duckYCoordinates + duckHeight )
+		)
+	)
+	&&
+	*/
+	count < 1000
+	)			
+	{
+	//console.log("inside while loop");
+	
+		
+		
+		
+		setTimeout(function(){
+    
+		if (
+		( (duckXCoordinates < snailXCoordinates  &&   snailXCoordinates < duckXCoordinates + duckWidth) || (duckXCoordinates < snailXCoordinates + snailWidth   &&   snailXCoordinates < duckXCoordinates + duckWidth) ) &&
+		//bus on top of snail                                                                                 snail on top of bus
+		( (duckYCoordinates <= snailYCoordinates && snailYCoordinates < duckYCoordinates + duckHeight  ) || (duckYCoordinates < snailYCoordinates + snailHeight    && snailYCoordinates + snailHeight  <= duckYCoordinates + duckHeight )  ||
+		//snail in the middle of bus
+		( snailYCoordinates < duckYCoordinates && snailYCoordinates + snailHeight  > duckYCoordinates + duckHeight )
+		)
+		)
+		{
+			stopDrawingDuck = true;
+			duckAte = true;
+			snailDeath();
+			
+		}
+		
+		if ( !stopDrawingDuck)
+		{
+		
+			if ( snailXCoordinates  < duckXCoordinates )
+			{
+				ctx.clearRect(duckXCoordinates, duckYCoordinates, duckWidth, duckHeight);
+				duckXCoordinates = duckXCoordinates - 2 ;
+				duck.src = "duck.png";
+				ctx.drawImage(duck, duckXCoordinates, duckYCoordinates);
+			}
+			if ( snailXCoordinates  > duckXCoordinates  )
+			{
+				ctx.clearRect(duckXCoordinates, duckYCoordinates, duckWidth, duckHeight);
+				duckXCoordinates = duckXCoordinates + 2;
+				duck.src = "duck-reverse.png";
+				ctx.drawImage(duck, duckXCoordinates, duckYCoordinates);
+			}
+			if ( snailYCoordinates  < duckYCoordinates )
+			{
+				ctx.clearRect(duckXCoordinates, duckYCoordinates, duckWidth, duckHeight);
+				duckYCoordinates = duckYCoordinates - 2;
+				ctx.drawImage(duck, duckXCoordinates, duckYCoordinates);
+			}
+			if ( snailYCoordinates  > duckYCoordinates  )
+			{
+				ctx.clearRect(duckXCoordinates, duckYCoordinates, duckWidth, duckHeight);
+				duckYCoordinates = duckYCoordinates + 2;
+				ctx.drawImage(duck, duckXCoordinates, duckYCoordinates);
+			}
+		}
+	
+  }, count * 250 );
+  
+	count++;
+	}
+	
+}
+
+
+/*
+function redrawWorld()
+{
+	ctx.fillStyle = "lightgrey";
+	ctx.fillRect(0, 80, canvas.width, 200);
+
+	ctx.fillStyle = "lightgrey";
+	ctx.fillRect(0, 320, canvas.width, 200);
+
+	ctx.fillStyle = 'green';
+	ctx.fillRect(0, 280, canvas.width, 40);
+}
+*/
+
+
+function snailDeath()
+{
+	numberSnailDeathFuncCalls++;
+	
+	if ( numberSnailDeathFuncCalls == 1 )
+	{
+		mainMusic.pause();
+		deathAudio.play();
+	
+		stopDrawingSnail = true;
+
+		document.onkeydown = null;
+		ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+	
+		if (!duckAte)
+		{
+			ctx.drawImage(tombstone, snailXCoordinates, snailYCoordinates)
+		}
+	
+	
+		setTimeout(function () {
+			location.reload();
+        
+		}, 6000);
+	
+	}
+}
+
+
+function snailWin()
+{
+	mainMusic.pause();
+	stageClearAudio.play();
+	stopDrawingSnail = true;
+	setTimeout(function () {
+        location.reload();
+        
+    }, 6000);
+	
+}
+
+
+function checkKey(e)
+{
+	//snail gets to apple
+	if (snailXCoordinates > 350 && snailXCoordinates && snailXCoordinates < 432 && snailYCoordinates < 42)
+	{
+		stopDrawingDuck = true;
+		snailWin();
+	}
+	
+	//snail gets to restaurant
+	if (snailXCoordinates > 0 && snailXCoordinates && snailXCoordinates < 230 && snailYCoordinates < 122)
+	{
+		stopDrawingDuck = true;
+		snailDeath();
+	}
+	
+	
+	if (snailYCoordinates == 170 )
+	{ 
+		if ( motorcycleNum == 0 )
+		{
+			motorcycle();
+			motorcycleNum = 1;
+		}
+	}
+
+	if ( snailYCoordinates == 100 )
+	{
+		stopDrawingDuck = false;
+		if (numberOfDuckFuncCalls == 1)
+		{
+			numberOfDuckFuncCalls++;
+			duckFunc();
+		}
+	}
+	
+	if ( snailYCoordinates > 100 )
+	{
+		stopDrawingDuck = true;
+	}
+
+
+    e = e || window.event;
+
+	if ( !stopDrawingSnail  )
+	{
+
+		if (e.keyCode == '38') {
+			// up arrow
+			ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+			snailYCoordinates = snailYCoordinates - 1;
+		
+			//console.log("snailYCoordinates : " + snailYCoordinates);
+		
+			if ( directionOfView == "right" )
+			{
+				ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+				ctx.drawImage(image, snailXCoordinates, snailYCoordinates);
+			}
+			else
+			{
+				ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+				ctx.drawImage(imageReverse, snailXCoordinates, snailYCoordinates);
+			}
+		}
+		else if (e.keyCode == '40') {
+			// down arrow
+			//ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+				//redrawWorld()
+		
+		
+			snailYCoordinates = snailYCoordinates + 1;
+			if ( directionOfView == "right" )
+			{
+				ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+				ctx.drawImage(image, snailXCoordinates, snailYCoordinates);
+			}
+			else
+			{
+				ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+				ctx.drawImage(imageReverse, snailXCoordinates, snailYCoordinates);
+			}
+		}
+		else if (e.keyCode == '37') {
+			// left arrow	   
+			directionOfView = "left";
+			ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+			snailXCoordinates = snailXCoordinates - 1;	   
+			ctx.drawImage(imageReverse, snailXCoordinates, snailYCoordinates);
+		
+		}
+		else if (e.keyCode == '39') {
+		// right arrow
+			directionOfView = "right";
+			ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+			snailXCoordinates = snailXCoordinates + 1;
+			ctx.drawImage(image, snailXCoordinates, snailYCoordinates);
+		}
+	
+	}
+}
+
+
+function upButtonPress()
+{
+	upButtonIntervalVar = setInterval(moveUp, 35);
+}
+
+function upButtonRelease()
+{
+	clearInterval(upButtonIntervalVar);
+}
+
+function moveUp()
+{
+
+	//snail gets to apple
+	if (snailXCoordinates > 350 && snailXCoordinates && snailXCoordinates < 432 && snailYCoordinates < 42)
+	{
+		stopDrawingDuck = true;
+		snailWin();
+	}
+	
+	//snail gets to restaurant
+	if (snailXCoordinates > 0 && snailXCoordinates && snailXCoordinates < 230 && snailYCoordinates < 122)
+	{
+		stopDrawingDuck = true;
+		snailDeath();
+	}
+
+	if (snailYCoordinates == 170 )
+	{ 
+		if ( motorcycleNum == 0 )
+		{
+			motorcycle();
+			motorcycleNum = 1;
+		}
+	}
+
+	if ( snailYCoordinates == 100 )
+	{
+		stopDrawingDuck = false;
+		if (numberOfDuckFuncCalls == 1)
+		{
+			numberOfDuckFuncCalls++;
+			duckFunc();
+		}
+	}
+	
+	if ( snailYCoordinates > 100 )
+	{
+		stopDrawingDuck = true;
+	}
+	
+	if ( !stopDrawingSnail  )
+	{
+		ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+		snailYCoordinates = snailYCoordinates - 1;
+		
+		//console.log("snailYCoordinates : " + snailYCoordinates);
+		
+		if ( directionOfView == "right" )
+		{
+			ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+			ctx.drawImage(image, snailXCoordinates, snailYCoordinates);
+		}
+		else
+		{
+			ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+			ctx.drawImage(imageReverse, snailXCoordinates, snailYCoordinates);
+		}
+	}
+}
+
+
+function downButtonPress()
+{
+	downButtonIntervalVar = setInterval(moveDown, 35);
+}
+
+function downButtonRelease()
+{
+	clearInterval(downButtonIntervalVar);
+}
+
+function moveDown()
+{
+	//snail gets to apple
+	if (snailXCoordinates > 350 && snailXCoordinates && snailXCoordinates < 432 && snailYCoordinates < 42)
+	{
+		stopDrawingDuck = true;
+		snailWin();
+	}
+	
+	//snail gets to restaurant
+	if (snailXCoordinates > 0 && snailXCoordinates && snailXCoordinates < 230 && snailYCoordinates < 122)
+	{
+		stopDrawingDuck = true;
+		snailDeath();
+	}
+
+	if (snailYCoordinates == 170 )
+	{ 
+		if ( motorcycleNum == 0 )
+		{
+			motorcycle();
+			motorcycleNum = 1;
+		}
+	}
+
+	if ( snailYCoordinates == 100 )
+	{
+		stopDrawingDuck = false;
+		if (numberOfDuckFuncCalls == 1)
+		{
+			numberOfDuckFuncCalls++;
+			duckFunc();
+		}
+	}
+	
+	if ( snailYCoordinates > 100 )
+	{
+		stopDrawingDuck = true;
+	}
+	
+	if ( !stopDrawingSnail  )
+	{
+		snailYCoordinates = snailYCoordinates + 1;
+		if ( directionOfView == "right" )
+		{
+			ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+			ctx.drawImage(image, snailXCoordinates, snailYCoordinates);
+		}
+		else
+		{
+			ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+			ctx.drawImage(imageReverse, snailXCoordinates, snailYCoordinates);
+		}
+	}
+	
+}
+
+
+function leftButtonPress()
+{
+	leftButtonIntervalVar = setInterval(moveLeft, 35);
+}
+
+function leftButtonRelease()
+{
+	clearInterval(leftButtonIntervalVar);
+}
+
+function moveLeft()
+{
+	//snail gets to apple
+	if (snailXCoordinates > 350 && snailXCoordinates && snailXCoordinates < 432 && snailYCoordinates < 42)
+	{
+		stopDrawingDuck = true;
+		snailWin();
+	}
+	
+	//snail gets to restaurant
+	if (snailXCoordinates > 0 && snailXCoordinates && snailXCoordinates < 230 && snailYCoordinates < 122)
+	{
+		stopDrawingDuck = true;
+		snailDeath();
+	}
+	
+	if (snailYCoordinates == 170 )
+	{ 
+		if ( motorcycleNum == 0 )
+		{
+			motorcycle();
+			motorcycleNum = 1;
+		}
+	}
+
+	if ( snailYCoordinates == 100 )
+	{
+		stopDrawingDuck = false;
+		if (numberOfDuckFuncCalls == 1)
+		{
+			numberOfDuckFuncCalls++;
+			duckFunc();
+		}
+	}
+	
+	if ( snailYCoordinates > 100 )
+	{
+		stopDrawingDuck = true;
+	}
+	
+	if ( !stopDrawingSnail  )
+	{
+		directionOfView = "left";
+		ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+		snailXCoordinates = snailXCoordinates - 1;	   
+		ctx.drawImage(imageReverse, snailXCoordinates, snailYCoordinates);
+	}
+}
+
+
+function rightButtonPress()
+{
+	rightButtonIntervalVar = setInterval(moveRight, 35);
+}
+
+function rightButtonRelease()
+{
+	clearInterval(rightButtonIntervalVar);
+}
+
+function moveRight()
+{
+	//snail gets to apple
+	if (snailXCoordinates > 350 && snailXCoordinates && snailXCoordinates < 432 && snailYCoordinates < 42)
+	{
+		stopDrawingDuck = true;
+		snailWin();
+	}
+	
+	//snail gets to restaurant
+	if (snailXCoordinates > 0 && snailXCoordinates && snailXCoordinates < 230 && snailYCoordinates < 122)
+	{
+		stopDrawingDuck = true;
+		snailDeath();
+	}
+
+	if (snailYCoordinates == 170 )
+	{ 
+		if ( motorcycleNum == 0 )
+		{
+			motorcycle();
+			motorcycleNum = 1;
+		}
+	}
+
+	if ( snailYCoordinates == 100 )
+	{
+		stopDrawingDuck = false;
+		if (numberOfDuckFuncCalls == 1)
+		{
+			numberOfDuckFuncCalls++;
+			duckFunc();
+		}
+	}
+	
+	if ( snailYCoordinates > 100 )
+	{
+		stopDrawingDuck = true;
+	}
+	
+	
+	if ( !stopDrawingSnail  )
+	{
+		directionOfView = "right";
+		ctx.clearRect(snailXCoordinates, snailYCoordinates, widthOfImage, heightOfImage);
+		snailXCoordinates = snailXCoordinates + 1;
+		ctx.drawImage(image, snailXCoordinates, snailYCoordinates);
+	}
+}
+
+
+</script>
+
+</html>
