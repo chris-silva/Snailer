@@ -169,8 +169,16 @@ var volumeOn = false;
 document.onkeydown = checkKey;
 
 
+document.addEventListener("visibilitychange", pageOffFocus);
+
 
 runVehicles();
+
+
+function pageOffFocus()
+{
+	location.reload();
+}
 
 
 function volumeFunc()
