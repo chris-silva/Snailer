@@ -17,14 +17,16 @@
 	</head>
 <body>
 
-<audio id="elecManAudio"> 
+<audio id="elecManAudio" > 
   <source src="08_Elec_Man.mp3" type="audio/mpeg">
   Your browser does not support the audio element.
 </audio>
 
+<!--
 <audio id="motorcycleAudio">
 	<source src="motorcycle-pass-by-03.mp3" type="audio/mpeg">
 </audio>
+-->
 
 <audio id="stageClearAudio">
 	<source src="Stage_Clear.mp3" type="audio/mpeg">
@@ -40,13 +42,21 @@
 Your browser does not support the HTML canvas tag.
 </canvas>
 
-<div id="gameControls"  style="text-align:center; padding-top:10px"  >
+<div style="text-align:center; padding-top:10px;" >
+
+<div id="gameControls"  style="display:inline-block"  >
   <button id="upButton" onmouseup="upButtonRelease()" onmousedown="upButtonPress()" >UP</button><br>
   <button id="leftButton" onmouseup="leftButtonRelease()" onmousedown="leftButtonPress()" >LEFT</button>
-  <button id="rightButton" onmouseup="rightButtonRelease()" onmousedown="rightButtonPress()" >RIGHT</button><br>
-  <button id="downButton" onmouseup="downButtonRelease()" onmousedown="downButtonPress()" >DOWN</button>
+  <button id="rightButton" onmouseup="rightButtonRelease()" onmousedown="rightButtonPress()" >RIGHT</button> 
+  <br> 
+  <button id="downButton" onmouseup="downButtonRelease()" onmousedown="downButtonPress()" >DOWN</button> 
 </div>
 
+	<div  style="display:inline-block; padding-left:40px; cursor: pointer; " onclick="volumeFunc()" >
+  <img id="volumeControl" src="volume-off.png"  />
+  </div>
+  
+</div>
 
 </body>
 
@@ -135,20 +145,26 @@ var rightButtonIntervalVar;
 
 var stopDrawingSnail = false;
 
+
 	image.onload = () => {
-       ctx.drawImage(image, snailXCoordinates, snailYCoordinates);
-	   ctx.drawImage(duck, duckXCoordinates, duckYCoordinates);
-	   ctx.drawImage(apple, appleXCoordinates, appleYCoordinates);
+       ctx.drawImage(image, snailXCoordinates, snailYCoordinates);	   
     }
+	duck.onload = () => {
+		ctx.drawImage(duck, duckXCoordinates, duckYCoordinates);
+	}
+	apple.onload = () => {	
+	   ctx.drawImage(apple, appleXCoordinates, appleYCoordinates);
+	}
 
 
 var mainMusic = document.getElementById("elecManAudio");
 mainMusic.loop = true;
-mainMusic.play(); 
+//mainMusic.play(); 
 var winMusic = document.getElementById("stageClearAudio");
 var deathMusic = document.getElementById("deathAudio");
-var motoMusic = document.getElementById("motorcycleAudio");
+//var motoMusic = document.getElementById("motorcycleAudio");
 
+var volumeOn = false;
 
 document.onkeydown = checkKey;
 
@@ -156,6 +172,27 @@ document.onkeydown = checkKey;
 
 runVehicles();
 
+
+function volumeFunc()
+{
+	let imgTemp;
+	
+	if (volumeOn == false)
+	{
+		
+		volumeOn = true;
+		mainMusic.play(); 
+		imgTemp = document.getElementById("volumeControl");
+		imgTemp.src = "volume-on.png";
+	}
+	else if (volumeOn == true)
+	{
+		volumeOn = false;
+		mainMusic.pause();
+		imgTemp = document.getElementById("volumeControl");
+		imgTemp.src = "volume-off.png";
+	}
+}
 
 async function runVehicles()
 {
@@ -176,7 +213,7 @@ async function runVehicles()
 
 async function motorcycle()
 {
-	motoMusic.play();
+	//motoMusic.play();
 	
 	let xMotorcyclePos = -100;
 	let yMotorcyclePos = 135;
